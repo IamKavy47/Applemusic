@@ -139,6 +139,19 @@
             margin-top: 30px;
         }
 
+        .music-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .music-card:hover {
+            transform: translateY(-5px);
+        }
+
         .song-item {
             display: flex;
             align-items: center;
@@ -352,11 +365,11 @@
         <div id="search" class="tab-content active">
             <div class="search-container">
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Search for songs, artists, albums...">
-                    <button class="btn" onclick="searchMusic()">Search</button>
+                    <input type="text" id="inputKeywords" placeholder="Search for songs, artists, albums...">
+                    <button class="btn" id="submitButton">Search</button>
                 </div>
             </div>
-            <div id="searchResults" class="results-container"></div>
+            <div id="musicContainer" class="results-container"></div>
         </div>
 
         <!-- Identify Tab -->
@@ -409,9 +422,10 @@
     </div>
 
     <script>
-        // Your API key (replace with your actual key)
-        const API_KEY = '73ec588339msh0aad14b831a7fb2p1fb80cjsnf7918996415b';
-        const API_HOST = 'shazam-core.p.rapidapi.com';
+        // DOM elements
+        const inputKeywords = document.getElementById("input-keywords");
+        const submitButton = document.getElementById("submit");
+        const musicContainer = document.querySelector(".music-container");
 
         // Tab switching functionality
         document.querySelectorAll('.tab-button').forEach(button => {
@@ -434,69 +448,62 @@
             });
         });
 
-        // Search music function
-        async function searchMusic() {
-            const query = document.getElementById('searchInput').value.trim();
-            if (!query) {
-                alert('Please enter a search term');
+        // Add event listener for search
+        document.getElementById('submitButton').addEventListener("click", () => {
+            getSongData();
+        });
+
+        // Main search function - matches your working code
+        async function getSongData() {
+            const url = `https://shazam.p.rapidapi.com/search?term=${document.getElementById('inputKeywords').value}&locale=en-US&offset=0&limit=5`;
+            const options = {
+                method: 'GET',
+                headers: {
+                    'X-RapidAPI-Key': '6d8530644dmsh3f76cd8be3ed75p110885jsn1fe6b07d6afea6',
+                    'X-RapidAPI-Host': 'shazam.p.rapidapi.com'
+                }
+            };
+
+            const response = await fetch(url, options);
+            const result = await response.json();
+            setSongDataDisplay(result);
+        }
+
+        // Display search results - matches your working structure
+        function setSongDataDisplay(result) {
+            const musicContainer = document.getElementById('musicContainer');
+            musicContainer.innerHTML = '';
+            
+            if (!result.tracks || !result.tracks.hits || result.tracks.hits.length === 0) {
+                musicContainer.innerHTML = '<div class="error">No results found</div>';
                 return;
             }
 
-            const resultsContainer = document.getElementById('searchResults');
-            resultsContainer.innerHTML = '<div class="loading">Searching...</div>';
-
-            try {
-                const url = `https://shazam-core.p.rapidapi.com/v1/search/suggest?query=${encodeURIComponent(query)}`;
-                const options = {
-                    method: 'GET',
-                    headers: {
-                        'x-rapidapi-key': API_KEY,
-                        'x-rapidapi-host': API_HOST
-                    }
-                };
-
-                const response = await fetch(url, options);
-                const data = await response.json();
-
-                if (data.tracks && data.tracks.length > 0) {
-                    displaySearchResults(data.tracks);
-                } else {
-                    resultsContainer.innerHTML = '<div class="error">No results found</div>';
-                }
-            } catch (error) {
-                console.error('Search error:', error);
-                resultsContainer.innerHTML = '<div class="error">Error occurred while searching</div>';
-            }
-        }
-
-        // Display search results
-        function displaySearchResults(tracks) {
-            const resultsContainer = document.getElementById('searchResults');
-            let html = '';
-
-            tracks.forEach(track => {
-                const coverart = track.images?.coverart || track.images?.background || '/api/placeholder/80/80';
-                const title = track.title || 'Unknown Title';
-                const artist = track.subtitle || 'Unknown Artist';
-                const url = track.url || '#';
-
-                html += `
+            result.tracks.hits.forEach(hit => {
+                const track = hit.track;
+                const div = document.createElement('div');
+                div.className = 'music-card';
+                
+                const coverArt = track.images && track.images.coverart ? track.images.coverart : '/api/placeholder/300/300';
+                const background = track.images && track.images.background ? track.images.background : '';
+                
+                div.innerHTML = `
                     <div class="song-item">
-                        <img src="${coverart}" alt="${title}" class="song-cover" onerror="this.src='/api/placeholder/80/80'">
+                        <img src="${coverArt}" alt="${track.title}" class="song-cover" onerror="this.src='/api/placeholder/80/80'">
                         <div class="song-info">
-                            <div class="song-title">${title}</div>
-                            <div class="song-artist">${artist}</div>
-                            <div class="song-album">${track.genre || 'Various'}</div>
+                            <div class="song-title">${track.title}</div>
+                            <div class="song-artist">${track.subtitle}</div>
+                            <div class="song-album">${track.sections ? track.sections[0]?.type || 'Unknown' : 'Unknown'}</div>
                         </div>
                         <div class="song-actions">
-                            <button class="action-btn play-btn" onclick="playPreview('${url}')">Play</button>
-                            <button class="action-btn preview-btn" onclick="getSongInfo('${track.key}')">Info</button>
+                            <button class="action-btn play-btn" onclick="playPreview('${track.url || '#'}')">Play</button>
+                            <button class="action-btn preview-btn" onclick="showTrackDetails('${track.key}')">Details</button>
                         </div>
                     </div>
                 `;
+                
+                musicContainer.appendChild(div);
             });
-
-            resultsContainer.innerHTML = html;
         }
 
         // Identify audio simulation
@@ -516,28 +523,51 @@
                 const randomQuery = randomSongs[Math.floor(Math.random() * randomSongs.length)];
                 
                 try {
-                    const url = `https://shazam-core.p.rapidapi.com/v1/search/suggest?query=${randomQuery}`;
+                    const url = `https://shazam.p.rapidapi.com/search?term=${randomQuery}&locale=en-US&offset=0&limit=1`;
                     const options = {
                         method: 'GET',
                         headers: {
-                            'x-rapidapi-key': API_KEY,
-                            'x-rapidapi-host': API_HOST
+                            'X-RapidAPI-Key': '6d8530644dmsh3f76cd8be3ed75p110885jsn1fe6b07d6afea6',
+                            'X-RapidAPI-Host': 'shazam.p.rapidapi.com'
                         }
                     };
 
                     const response = await fetch(url, options);
-                    const data = await response.json();
+                    const result = await response.json();
 
-                    if (data.tracks && data.tracks.length > 0) {
+                    if (result.tracks && result.tracks.hits && result.tracks.hits.length > 0) {
                         resultsContainer.innerHTML = '<h3>🎵 Song Identified!</h3>';
-                        displaySearchResults([data.tracks[0]]);
+                        const track = result.tracks.hits[0].track;
+                        displayIdentifiedSong(track);
                     } else {
                         resultsContainer.innerHTML = '<div class="error">Could not identify the song</div>';
                     }
                 } catch (error) {
+                    console.error('Identify error:', error);
                     resultsContainer.innerHTML = '<div class="error">Error during identification</div>';
                 }
             }, 3000);
+        }
+
+        function displayIdentifiedSong(track) {
+            const resultsContainer = document.getElementById('identifyResults');
+            const coverArt = track.images && track.images.coverart ? track.images.coverart : '/api/placeholder/80/80';
+            
+            const html = `
+                <div class="song-item">
+                    <img src="${coverArt}" alt="${track.title}" class="song-cover" onerror="this.src='/api/placeholder/80/80'">
+                    <div class="song-info">
+                        <div class="song-title">${track.title}</div>
+                        <div class="song-artist">${track.subtitle}</div>
+                        <div class="song-album">Identified Song</div>
+                    </div>
+                    <div class="song-actions">
+                        <button class="action-btn play-btn" onclick="playPreview('${track.url || '#'}')">Play</button>
+                    </div>
+                </div>
+            `;
+            
+            resultsContainer.innerHTML += html;
         }
 
         // Get top charts
@@ -547,20 +577,20 @@
             resultsContainer.innerHTML = '<div class="loading">Loading charts...</div>';
 
             try {
-                const url = `https://shazam-core.p.rapidapi.com/v1/charts/country?country_code=${country}`;
+                const url = `https://shazam.p.rapidapi.com/charts/country?country_code=${country}`;
                 const options = {
                     method: 'GET',
                     headers: {
-                        'x-rapidapi-key': API_KEY,
-                        'x-rapidapi-host': API_HOST
+                        'X-RapidAPI-Key': '6d8530644dmsh3f76cd8be3ed75p110885jsn1fe6b07d6afea6',
+                        'X-RapidAPI-Host': 'shazam.p.rapidapi.com'
                     }
                 };
 
                 const response = await fetch(url, options);
-                const data = await response.json();
+                const result = await response.json();
 
-                if (data && data.length > 0) {
-                    displayCharts(data);
+                if (result && result.length > 0) {
+                    displayCharts(result);
                 } else {
                     resultsContainer.innerHTML = '<div class="error">No chart data available</div>';
                 }
@@ -576,7 +606,7 @@
             let html = '';
 
             tracks.slice(0, 20).forEach((track, index) => {
-                const coverart = track.images?.coverart || '/api/placeholder/60/60';
+                const coverart = track.images && track.images.coverart ? track.images.coverart : '/api/placeholder/60/60';
                 const title = track.title || 'Unknown Title';
                 const artist = track.subtitle || 'Unknown Artist';
 
@@ -607,20 +637,20 @@
             resultsContainer.innerHTML = '<div class="loading">Searching artist...</div>';
 
             try {
-                const url = `https://shazam-core.p.rapidapi.com/v1/search/suggest?query=${encodeURIComponent(query)}`;
+                const url = `https://shazam.p.rapidapi.com/search?term=${encodeURIComponent(query)}&locale=en-US&offset=0&limit=5`;
                 const options = {
                     method: 'GET',
                     headers: {
-                        'x-rapidapi-key': API_KEY,
-                        'x-rapidapi-host': API_HOST
+                        'X-RapidAPI-Key': '6d8530644dmsh3f76cd8be3ed75p110885jsn1fe6b07d6afea6',
+                        'X-RapidAPI-Host': 'shazam.p.rapidapi.com'
                     }
                 };
 
                 const response = await fetch(url, options);
-                const data = await response.json();
+                const result = await response.json();
 
-                if (data.tracks && data.tracks.length > 0) {
-                    displayArtistInfo(data.tracks[0]);
+                if (result.tracks && result.tracks.hits && result.tracks.hits.length > 0) {
+                    displayArtistInfo(result.tracks.hits);
                 } else {
                     resultsContainer.innerHTML = '<div class="error">Artist not found</div>';
                 }
@@ -631,59 +661,55 @@
         }
 
         // Display artist info
-        function displayArtistInfo(track) {
+        function displayArtistInfo(hits) {
             const resultsContainer = document.getElementById('artistResults');
-            const artistImage = track.images?.background || track.images?.coverart || '/api/placeholder/150/150';
-            const artistName = track.subtitle || 'Unknown Artist';
-            const genres = track.genre || 'Various';
+            const firstTrack = hits[0].track;
+            const artistImage = firstTrack.images && firstTrack.images.background ? firstTrack.images.background : '/api/placeholder/150/150';
+            const artistName = firstTrack.subtitle || 'Unknown Artist';
 
-            const html = `
+            let html = `
                 <div class="artist-profile">
                     <img src="${artistImage}" alt="${artistName}" class="artist-image" onerror="this.src='/api/placeholder/150/150'">
                     <div class="artist-name">${artistName}</div>
                     <div class="artist-followers">Popular Artist</div>
                     <div class="genre-tags">
-                        <span class="genre-tag">${genres}</span>
+                        <span class="genre-tag">Music</span>
                     </div>
                 </div>
                 <h3>Popular Songs</h3>
-                <div class="song-item">
-                    <img src="${track.images?.coverart || '/api/placeholder/80/80'}" alt="${track.title}" class="song-cover" onerror="this.src='/api/placeholder/80/80'">
-                    <div class="song-info">
-                        <div class="song-title">${track.title || 'Unknown Title'}</div>
-                        <div class="song-artist">${artistName}</div>
-                        <div class="song-album">Latest Release</div>
-                    </div>
-                    <div class="song-actions">
-                        <button class="action-btn play-btn" onclick="playPreview('${track.url || '#'}')">Play</button>
-                    </div>
-                </div>
             `;
+
+            hits.forEach(hit => {
+                const track = hit.track;
+                const coverart = track.images && track.images.coverart ? track.images.coverart : '/api/placeholder/80/80';
+                
+                html += `
+                    <div class="song-item">
+                        <img src="${coverart}" alt="${track.title}" class="song-cover" onerror="this.src='/api/placeholder/80/80'">
+                        <div class="song-info">
+                            <div class="song-title">${track.title}</div>
+                            <div class="song-artist">${track.subtitle}</div>
+                            <div class="song-album">Popular Track</div>
+                        </div>
+                        <div class="song-actions">
+                            <button class="action-btn play-btn" onclick="playPreview('${track.url || '#'}')">Play</button>
+                        </div>
+                    </div>
+                `;
+            });
 
             resultsContainer.innerHTML = html;
         }
 
-        // Get song info
-        async function getSongInfo(songKey) {
-            if (!songKey) return;
-
-            try {
-                const url = `https://shazam-core.p.rapidapi.com/v1/tracks/details?track_id=${songKey}`;
-                const options = {
-                    method: 'GET',
-                    headers: {
-                        'x-rapidapi-key': API_KEY,
-                        'x-rapidapi-host': API_HOST
-                    }
-                };
-
-                const response = await fetch(url, options);
-                const data = await response.json();
-                
-                alert(`Song Info:\nTitle: ${data.title || 'N/A'}\nArtist: ${data.subtitle || 'N/A'}\nGenre: ${data.genre || 'N/A'}`);
-            } catch (error) {
-                alert('Unable to fetch song details');
+        // Show track details
+        function showTrackDetails(trackKey) {
+            if (!trackKey) {
+                alert('Track details not available');
+                return;
             }
+            
+            // You can implement track details API call here
+            alert(`Track key: ${trackKey}\n\nDetailed track information would be fetched from the Shazam API with the track key.`);
         }
 
         // Play preview (simulation)
@@ -696,9 +722,9 @@
         }
 
         // Enter key support for search
-        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        document.getElementById('inputKeywords').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                searchMusic();
+                getSongData();
             }
         });
 
@@ -706,11 +732,6 @@
             if (e.key === 'Enter') {
                 searchArtist();
             }
-        });
-
-        // Load top charts on page load
-        window.addEventListener('load', function() {
-            getTopCharts();
         });
     </script>
 </body>
