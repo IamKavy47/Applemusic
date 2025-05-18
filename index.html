@@ -1,453 +1,748 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apple Music</title>
-    <meta name="description" content="Apple Music clone with Shazam API integration">
-    <meta name="theme-color" content="#ffffff">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <title>Music Discovery App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            color: #f0f0f0;
+            font-size: 1.2rem;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            background: white;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            flex: 1;
+            text-align: center;
+        }
+
+        .tab:hover {
+            background: #f0f0f0;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        select, input, button {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            min-width: 120px;
+        }
+
+        button:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex: 1;
+        }
+
+        .search-container input {
+            flex: 1;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 1px solid #f0f0f0;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #333;
+            line-height: 1.3;
+        }
+
+        .card-subtitle {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .card-info {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            text-decoration: none;
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-small:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .suggestion-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .suggestion-item:hover {
+            background: #f8f9fa;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .suggestion-type {
+            color: #667eea;
+            font-size: 0.9rem;
+            text-transform: capitalize;
+        }
+    </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <div class="mobile-menu-button" id="mobile-menu-button">
-                    ☰
-                </div>
-                <div class="logo">
-                    <svg class="logo-icon" viewBox="0 0 24 24">
-                        <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M9,8V16H11V8H9M13,8V16H15V8H13Z" />
-                    </svg>
-                    Apple Music
-                </div>
-                <div class="header-actions">
-                    <div class="theme-toggle" id="theme-toggle">
-                        <div class="theme-toggle-circle"></div>
-                        <svg class="theme-toggle-icon sun" viewBox="0 0 24 24">
-                            <path d="M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,2L14.39,5.42C13.65,5.15 12.84,5 12,5C11.16,5 10.35,5.15 9.61,5.42L12,2M3.34,7L7.5,6.65C6.9,7.16 6.36,7.78 5.94,8.5C5.5,9.24 5.25,10 5.11,10.79L3.34,7M3.36,17L5.12,13.23C5.26,14 5.53,14.78 5.95,15.5C6.37,16.24 6.91,16.86 7.5,17.37L3.36,17M20.65,7L18.88,10.79C18.74,10 18.47,9.23 18.05,8.5C17.63,7.78 17.1,7.15 16.5,6.64L20.65,7M20.64,17L16.5,17.36C17.09,16.85 17.62,16.22 18.04,15.5C18.46,14.77 18.73,14 18.87,13.21L20.64,17M12,22L9.59,18.56C10.33,18.83 11.14,19 12,19C12.82,19 13.63,18.83 14.37,18.56L12,22Z" />
-                        </svg>
-                        <svg class="theme-toggle-icon moon" viewBox="0 0 24 24">
-                            <path d="M17.75,4.09L15.22,6.03L16.13,9.09L13.5,7.28L10.87,9.09L11.78,6.03L9.25,4.09L12.44,4L13.5,1L14.56,4L17.75,4.09M21.25,11L19.61,12.25L20.2,14.23L18.5,13.06L16.8,14.23L17.39,12.25L15.75,11L17.81,10.95L18.5,9L19.19,10.95L21.25,11M18.97,15.95C19.8,15.87 20.69,17.05 20.16,17.8C19.84,18.25 19.5,18.67 19.08,19.07C15.17,23 8.84,23 4.94,19.07C1.03,15.17 1.03,8.83 4.94,4.93C5.34,4.53 5.76,4.17 6.21,3.85C6.96,3.32 8.14,4.21 8.06,5.04C7.79,7.9 8.75,10.87 10.95,13.06C13.14,15.26 16.1,16.22 18.97,15.95M17.33,17.97C14.5,17.81 11.7,16.64 9.53,14.5C7.36,12.31 6.2,9.5 6.04,6.68C3.23,9.82 3.34,14.64 6.35,17.66C9.37,20.67 14.19,20.78 17.33,17.97Z" />
-                        </svg>
-                    </div>
-                    <div class="user-profile">
-                        A
-                    </div>
-                </div>
-                <div class="search-bar">
-                    <input type="text" class="search-input" placeholder="Search for artists, songs, albums..." id="search-input">
-                </div>
-            </div>
-            <nav class="nav-tabs">
-                <div class="nav-tab active" data-tab="listen-now">Listen Now</div>
-                <div class="nav-tab" data-tab="browse">Browse</div>
-                <div class="nav-tab" data-tab="radio">Radio</div>
-                <div class="nav-tab" data-tab="library">Library</div>
-                <div class="nav-tab" data-tab="search">Search</div>
-                <div class="nav-tab" data-tab="playlists">Playlists</div>
-            </nav>
-        </header>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Listen Now Tab -->
-            <div class="tab-content active" id="listen-now-tab">
-                <!-- Hero Section -->
-                <section class="hero-section">
-                    <div class="hero-content">
-                        <span class="hero-badge">Featured</span>
-                        <h1 class="hero-title">Discover Your Next Favorite Song</h1>
-                        <p class="hero-subtitle">Explore millions of songs, curated playlists, and exclusive content</p>
-                        <button class="hero-button" id="hero-button">Start Listening</button>
-                    </div>
-                    <div class="hero-visual"></div>
-                </section>
-
-                <!-- Recently Played -->
-                <section class="section">
-                    <div class="section-header">
-                        <h2 class="section-title">Recently Played</h2>
-                        <a href="#" class="see-all">See All</a>
-                    </div>
-                    <div class="albums-grid" id="recently-played">
-                        <!-- Skeleton loading -->
-                        <div class="album-card skeleton-card">
-                            <div class="skeleton skeleton-album"></div>
-                            <div class="album-info">
-                                <div class="skeleton skeleton-text"></div>
-                                <div class="skeleton skeleton-text-sm"></div>
-                            </div>
-                        </div>
-                        <div class="album-card skeleton-card">
-                            <div class="skeleton skeleton-album"></div>
-                            <div class="album-info">
-                                <div class="skeleton skeleton-text"></div>
-                                <div class="skeleton skeleton-text-sm"></div>
-                            </div>
-                        </div>
-                        <div class="album-card skeleton-card">
-                            <div class="skeleton skeleton-album"></div>
-                            <div class="album-info">
-                                <div class="skeleton skeleton-text"></div>
-                                <div class="skeleton skeleton-text-sm"></div>
-                            </div>
-                        </div>
-                        <div class="album-card skeleton-card">
-                            <div class="skeleton skeleton-album"></div>
-                            <div class="album-info">
-                                <div class="skeleton skeleton-text"></div>
-                                <div class="skeleton skeleton-text-sm"></div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Popular Albums -->
-                <section class="section">
-                    <div class="section-header">
-                        <h2 class="section-title">Popular Albums</h2>
-                        <a href="#" class="see-all">See All</a>
-                    </div>
-                    <div class="albums-grid" id="popular-albums">
-                        <!-- Skeleton loading -->
-                        <div class="album-card skeleton-card">
-                            <div class="skeleton skeleton-album"></div>
-                            <div class="album-info">
-                                <div class="skeleton skeleton-text"></div>
-                                <div class="skeleton skeleton-text-sm"></div>
-                            </div>
-                        </div>
-                        <div class="album-card skeleton-card">
-                            <div class="skeleton skeleton-album"></div>
-                            <div class="album-info">
-                                <div class="skeleton skeleton-text"></div>
-                                <div class="skeleton skeleton-text-sm"></div>
-                            </div>
-                        </div>
-                        <div class="album-card skeleton-card">
-                            <div class="skeleton skeleton-album"></div>
-                            <div class="album-info">
-                                <div class="skeleton skeleton-text"></div>
-                                <div class="skeleton skeleton-text-sm"></div>
-                            </div>
-                        </div>
-                        <div class="album-card skeleton-card">
-                            <div class="skeleton skeleton-album"></div>
-                            <div class="album-info">
-                                <div class="skeleton skeleton-text"></div>
-                                <div class="skeleton skeleton-text-sm"></div>
-                            </div>
-                        </div>
-                        <div class="album-card skeleton-card">
-                            <div class="skeleton skeleton-album"></div>
-                            <div class="album-info">
-                                <div class="skeleton skeleton-text"></div>
-                                <div class="skeleton skeleton-text-sm"></div>
-                            </div>
-                        </div>
-                        <div class="album-card skeleton-card">
-                            <div class="skeleton skeleton-album"></div>
-                            <div class="album-info">
-                                <div class="skeleton skeleton-text"></div>
-                                <div class="skeleton skeleton-text-sm"></div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Top Songs -->
-                <section class="section">
-                    <div class="section-header">
-                        <h2 class="section-title">Top Songs</h2>
-                        <a href="#" class="see-all">See All</a>
-                    </div>
-                    <div class="song-list" id="top-songs">
-                        <!-- Skeleton loading -->
-                        <div class="skeleton skeleton-song"></div>
-                        <div class="skeleton skeleton-song"></div>
-                        <div class="skeleton skeleton-song"></div>
-                        <div class="skeleton skeleton-song"></div>
-                        <div class="skeleton skeleton-song"></div>
-                    </div>
-                </section>
-            </div>
-
-            <!-- Browse Tab -->
-            <div class="tab-content" id="browse-tab">
-                <section class="section">
-                    <div class="section-header">
-                        <h2 class="section-title">Browse by Category</h2>
-                    </div>
-                    <div class="browse-categories" id="browse-categories">
-                        <!-- Will be populated by JS -->
-                    </div>
-                </section>
-
-                <section class="section">
-                    <div class="section-header">
-                        <h2 class="section-title">New Releases</h2>
-                        <a href="#" class="see-all">See All</a>
-                    </div>
-                    <div class="albums-grid" id="new-releases">
-                        <!-- Will be populated by JS -->
-                    </div>
-                </section>
-
-                <section class="section">
-                    <div class="section-header">
-                        <h2 class="section-title">Featured Playlists</h2>
-                        <a href="#" class="see-all">See All</a>
-                    </div>
-                    <div class="albums-grid" id="featured-playlists">
-                        <!-- Will be populated by JS -->
-                    </div>
-                </section>
-            </div>
-
-            <!-- Radio Tab -->
-            <div class="tab-content" id="radio-tab">
-                <section class="section">
-                    <div class="section-header">
-                        <h2 class="section-title">Featured Stations</h2>
-                    </div>
-                    <div class="radio-stations" id="featured-stations">
-                        <!-- Will be populated by JS -->
-                    </div>
-                </section>
-
-                <section class="section">
-                    <div class="section-header">
-                        <h2 class="section-title">Genre Stations</h2>
-                        <a href="#" class="see-all">See All</a>
-                    </div>
-                    <div class="radio-stations" id="genre-stations">
-                        <!-- Will be populated by JS -->
-                    </div>
-                </section>
-            </div>
-
-            <!-- Library Tab -->
-            <div class="tab-content" id="library-tab">
-                <div class="library-empty">
-                    <div class="library-empty-icon">♫</div>
-                    <h3 class="library-empty-title">Your Library is Empty</h3>
-                    <p class="library-empty-text">Add songs, albums, and playlists to your library to see them here.</p>
-                    <button class="library-button">Browse Music</button>
-                </div>
-            </div>
-
-            <!-- Search Tab -->
-            <div class="tab-content" id="search-tab">
-                <div class="search-results" id="search-results">
-                    <div class="search-empty">
-                        <div class="search-empty-icon">🔍</div>
-                        <h3 class="search-empty-title">Search Apple Music</h3>
-                        <p class="search-empty-text">Find your favorite songs, artists, albums, and playlists.</p>
-                    </div>
-                </div>
-                <section class="section">
-                    <div class="section-header">
-                        <h2 class="section-title">Browse Categories</h2>
-                    </div>
-                    <div class="search-categories" id="search-categories">
-                        <!-- Will be populated by JS -->
-                    </div>
-                </section>
-            </div>
-
-            <!-- Playlists Tab -->
-            <div class="tab-content" id="playlists-tab">
-                <section class="section">
-                    <div class="section-header">
-                        <h2 class="section-title">Your Playlists</h2>
-                    </div>
-                    <div class="playlists-grid" id="your-playlists">
-                        <!-- Will be populated by JS -->
-                    </div>
-                </section>
-                <section class="section">
-                    <div class="section-header">
-                        <h2 class="section-title">Apple Music Playlists</h2>
-                    </div>
-                    <div class="playlists-grid" id="apple-playlists">
-                        <!-- Will be populated by JS -->
-                    </div>
-                </section>
-            </div>
-        </main>
-    </div>
-
-    <!-- Player -->
-    <div class="player" id="player">
-        <div class="player-content">
-            <div class="player-song-info">
-                <div class="player-cover">
-                    <img src="https://via.placeholder.com/45" alt="Album cover" id="player-cover-img">
-                </div>
-                <div class="player-details">
-                    <div class="player-title" id="player-title">Not Playing</div>
-                    <div class="player-artist" id="player-artist">-</div>
-                </div>
-            </div>
-            <div class="player-controls">
-                <button class="control-button" id="prev-button">⏮</button>
-                <button class="control-button play-pause-button" id="play-pause-button">▶</button>
-                <button class="control-button" id="next-button">⏭</button>
-                <div class="equalizer" id="equalizer">
-                    <div class="equalizer-bar"></div>
-                    <div class="equalizer-bar"></div>
-                    <div class="equalizer-bar"></div>
-                    <div class="equalizer-bar"></div>
-                </div>
-            </div>
-            <div class="progress-section">
-                <div class="progress-bar" id="progress-bar">
-                    <div class="progress-fill" id="progress-fill"></div>
-                </div>
-                <div class="time-info">
-                    <span id="current-time">0:00</span>
-                    <span id="total-time">0:00</span>
-                </div>
-            </div>
-            <div class="volume-section">
-                <div class="volume-icon">🔊</div>
-                <div class="volume-slider" id="volume-slider">
-                    <div class="volume-fill" id="volume-fill"></div>
-                </div>
-            </div>
-            <div class="mini-player-toggle" id="mini-player-toggle">↕️</div>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 Music Discovery</h1>
+            <p>Discover trending music, search for your favorites, and explore artists</p>
         </div>
-    </div>
 
-    <!-- Shazam Button -->
-    <div class="shazam-button" id="shazam-button">
-        <svg class="shazam-icon" viewBox="0 0 24 24">
-            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M7,10L12,15L17,10H7Z" />
-        </svg>
-    </div>
-
-    <!-- Notification -->
-    <div class="notification" id="notification">Song added to your library</div>
-
-    <!-- Lyrics Modal -->
-    <div class="lyrics-modal" id="lyrics-modal">
-        <div class="lyrics-content">
-            <h3 class="lyrics-title">Lyrics</h3>
-            <div class="lyrics-text" id="lyrics-text">Loading lyrics...</div>
-            <button class="lyrics-close" id="lyrics-close">Close</button>
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('charts')">Charts</button>
+            <button class="tab" onclick="showTab('search')">Search</button>
+            <button class="tab" onclick="showTab('artists')">Artists</button>
+            <button class="tab" onclick="showTab('cities')">Cities</button>
         </div>
-    </div>
 
-    <!-- Shazam Modal -->
-    <div class="shazam-modal" id="shazam-modal">
-        <div class="shazam-content">
-            <h3 class="shazam-title">Listening...</h3>
-            <div class="shazam-animation">
-                <svg class="shazam-icon-large" viewBox="0 0 24 24">
-                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M7,10L12,15L17,10H7Z" />
-                </svg>
-            </div>
-            <p class="shazam-text">Hold on, we're trying to identify this song...</p>
-            <button class="shazam-cancel" id="shazam-cancel">Cancel</button>
-            
-            <div class="shazam-result" id="shazam-result">
-                <div class="shazam-result-cover">
-                    <img src="https://via.placeholder.com/150" alt="Song cover" id="shazam-result-img">
+        <div id="charts" class="tab-content active">
+            <div class="content">
+                <h2>Music Charts</h2>
+                <div class="controls">
+                    <select id="country-select">
+                        <option value="US">United States</option>
+                        <option value="IN" selected>India</option>
+                        <option value="GB">United Kingdom</option>
+                        <option value="CA">Canada</option>
+                        <option value="AU">Australia</option>
+                        <option value="DE">Germany</option>
+                        <option value="FR">France</option>
+                        <option value="JP">Japan</option>
+                        <option value="BR">Brazil</option>
+                        <option value="MX">Mexico</option>
+                    </select>
+                    <select id="genre-select">
+                        <option value="">All Genres</option>
+                        <option value="POP" selected>Pop</option>
+                        <option value="ROCK">Rock</option>
+                        <option value="HIP_HOP_RAP">Hip Hop/Rap</option>
+                        <option value="DANCE">Dance</option>
+                        <option value="R_AND_B_SOUL">R&B/Soul</option>
+                        <option value="ALTERNATIVE">Alternative</option>
+                        <option value="ELECTRONIC">Electronic</option>
+                        <option value="COUNTRY">Country</option>
+                        <option value="REGGAE_DANCE_HALL">Reggae</option>
+                        <option value="JAZZ">Jazz</option>
+                    </select>
+                    <button onclick="loadCharts()" id="load-charts-btn">Load Charts</button>
                 </div>
-                <h3 class="shazam-result-title" id="shazam-result-title">Song Title</h3>
-                <p class="shazam-result-artist" id="shazam-result-artist">Artist Name</p>
-                <button class="shazam-play" id="shazam-play">Play Now</button>
-                <button class="shazam-cancel" id="shazam-close">Close</button>
+                <div id="charts-results"></div>
+            </div>
+        </div>
+
+        <div id="search" class="tab-content">
+            <div class="content">
+                <h2>Search Music</h2>
+                <div class="controls">
+                    <div class="search-container">
+                        <input type="text" id="search-input" placeholder="Search for songs, artists, albums..." onkeypress="handleSearchKeyPress(event)">
+                        <button onclick="searchMusic()" id="search-btn">Search</button>
+                    </div>
+                </div>
+                <div id="search-results"></div>
+            </div>
+        </div>
+
+        <div id="artists" class="tab-content">
+            <div class="content">
+                <h2>Artist Details</h2>
+                <div class="controls">
+                    <div class="search-container">
+                        <input type="text" id="artist-input" placeholder="Enter artist name..." onkeypress="handleArtistKeyPress(event)">
+                        <button onclick="searchArtists()" id="artist-search-btn">Search Artist</button>
+                    </div>
+                </div>
+                <div id="artists-results"></div>
+            </div>
+        </div>
+
+        <div id="cities" class="tab-content">
+            <div class="content">
+                <h2>Music by Cities</h2>
+                <button onclick="loadCities()" id="load-cities-btn">Load Cities</button>
+                <div id="cities-results"></div>
             </div>
         </div>
     </div>
 
-    <!-- Context Menu -->
-    <div class="context-menu" id="context-menu">
-        <div class="context-menu-item" data-action="play">Play</div>
-        <div class="context-menu-item" data-action="add-library">Add to Library</div>
-        <div class="context-menu-item" data-action="add-playlist">Add to Playlist</div>
-        <div class="context-menu-item" data-action="view-artist">View Artist</div>
-        <div class="context-menu-item" data-action="view-album">View Album</div>
-        <div class="context-menu-item" data-action="share">Share</div>
-        <div class="context-menu-item" data-action="lyrics">Show Lyrics</div>
-    </div>
-
-    <!-- Mobile Menu -->
-    <div class="mobile-menu" id="mobile-menu">
-        <div class="mobile-menu-header">
-            <div class="logo">
-                <svg class="logo-icon" viewBox="0 0 24 24">
-                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M9,8V16H11V8H9M13,8V16H15V8H13Z" />
-                </svg>
-                Apple Music
-            </div>
-            <div class="mobile-menu-close" id="mobile-menu-close">✕</div>
-        </div>
-        <div class="mobile-menu-items">
-            <div class="mobile-menu-item" data-tab="listen-now">
-                <div class="mobile-menu-icon">♫</div>
-                <div class="mobile-menu-text">Listen Now</div>
-            </div>
-            <div class="mobile-menu-item" data-tab="browse">
-                <div class="mobile-menu-icon">🔍</div>
-                <div class="mobile-menu-text">Browse</div>
-            </div>
-            <div class="mobile-menu-item" data-tab="radio">
-                <div class="mobile-menu-icon">📻</div>
-                <div class="mobile-menu-text">Radio</div>
-            </div>
-            <div class="mobile-menu-item" data-tab="library">
-                <div class="mobile-menu-icon">📚</div>
-                <div class="mobile-menu-text">Library</div>
-            </div>
-            <div class="mobile-menu-item" data-tab="search">
-                <div class="mobile-menu-icon">🔎</div>
-                <div class="mobile-menu-text">Search</div>
-            </div>
-            <div class="mobile-menu-item" data-tab="playlists">
-                <div class="mobile-menu-icon">📋</div>
-                <div class="mobile-menu-text">Playlists</div>
-            </div>
-            <div class="mobile-menu-item" id="mobile-theme-toggle">
-                <div class="mobile-menu-icon">🌓</div>
-                <div class="mobile-menu-text">Toggle Theme</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Install Prompt -->
-    <div class="install-prompt" id="install-prompt">
-        <div class="install-text">
-            <div class="install-title">Install Apple Music</div>
-            <div class="install-desc">Add to your home screen for the best experience</div>
-        </div>
-        <div class="install-buttons">
-            <button class="install-button" id="install-button">Install</button>
-            <button class="install-dismiss" id="install-dismiss">Not Now</button>
-        </div>
-    </div>
-
-    <script src="app.js"></script>
     <script>
-        // Register service worker for PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('ServiceWorker registration failed: ', error);
-                    });
-            });
+        const API_KEY = '73ec588339msh0aad14b831a7fb2p1fb80cjsnf7918996415b';
+        const API_HOST = 'shazam-core.p.rapidapi.com';
+
+        function showTab(tabId) {
+            // Remove active class from all tabs and content
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
         }
+
+        function showLoading(containerId) {
+            document.getElementById(containerId).innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading...</p>
+                </div>
+            `;
+        }
+
+        function showError(containerId, message) {
+            document.getElementById(containerId).innerHTML = `
+                <div class="error">
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+        }
+
+        function showEmpty(containerId, message) {
+            document.getElementById(containerId).innerHTML = `
+                <div class="empty">
+                    <h3>No Results Found</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        async function makeApiRequest(url) {
+            const options = {
+                method: 'GET',
+                headers: {
+                    'x-rapidapi-key': API_KEY,
+                    'x-rapidapi-host': API_HOST
+                }
+            };
+
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                console.error('API request failed:', error);
+                throw error;
+            }
+        }
+
+        async function loadCharts() {
+            const country = document.getElementById('country-select').value;
+            const genre = document.getElementById('genre-select').value;
+            const button = document.getElementById('load-charts-btn');
+            
+            button.disabled = true;
+            button.textContent = 'Loading...';
+            showLoading('charts-results');
+
+            try {
+                let url;
+                if (genre) {
+                    url = `https://shazam-core.p.rapidapi.com/v1/charts/genre-country?country_code=${country}&genre_code=${genre}`;
+                } else {
+                    url = `https://shazam-core.p.rapidapi.com/v1/charts/country?country_code=${country}`;
+                }
+
+                const data = await makeApiRequest(url);
+                displayCharts(data);
+            } catch (error) {
+                showError('charts-results', 'Failed to load charts. Please try again.');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Load Charts';
+            }
+        }
+
+        function displayCharts(data) {
+            const container = document.getElementById('charts-results');
+            
+            if (!data || !data.length) {
+                showEmpty('charts-results', 'No chart data available for the selected country and genre.');
+                return;
+            }
+
+            const gridHtml = data.map((track, index) => {
+                const title = track.title || 'Unknown Title';
+                const artist = track.subtitle || 'Unknown Artist';
+                const coverArt = track.images && track.images.coverart ? track.images.coverart : '';
+                const hub = track.hub || {};
+                
+                return `
+                    <div class="card">
+                        ${coverArt ? `<img src="${coverArt}" alt="${title}" class="card-image">` : `<div class="card-image"></div>`}
+                        <div class="card-content">
+                            <div class="card-title">#${index + 1} ${title}</div>
+                            <div class="card-subtitle">${artist}</div>
+                            <div class="card-info">
+                                ${track.sections && track.sections[0] && track.sections[0].text ? track.sections[0].text.join(' • ') : ''}
+                            </div>
+                            <div class="card-actions">
+                                ${hub.actions && hub.actions.length > 0 ? 
+                                    hub.actions.map(action => `
+                                        <a href="${action.uri}" target="_blank" class="btn-small">${action.name || 'Listen'}</a>
+                                    `).join('') : ''
+                                }
+                                ${track.key ? `<button class="btn-small btn-secondary" onclick="getTrackDetails('${track.key}')">Details</button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `<div class="grid">${gridHtml}</div>`;
+        }
+
+        function handleSearchKeyPress(event) {
+            if (event.key === 'Enter') {
+                searchMusic();
+            }
+        }
+
+        async function searchMusic() {
+            const query = document.getElementById('search-input').value.trim();
+            const button = document.getElementById('search-btn');
+            
+            if (!query) {
+                showError('search-results', 'Please enter a search term.');
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = 'Searching...';
+            showLoading('search-results');
+
+            try {
+                const url = `https://shazam-core.p.rapidapi.com/v1/search/suggest?query=${encodeURIComponent(query)}`;
+                const data = await makeApiRequest(url);
+                displaySearchResults(data);
+            } catch (error) {
+                showError('search-results', 'Failed to search. Please try again.');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Search';
+            }
+        }
+
+        function displaySearchResults(data) {
+            const container = document.getElementById('search-results');
+            
+            if (!data || !data.suggestions) {
+                showEmpty('search-results', 'No search suggestions found.');
+                return;
+            }
+
+            const suggestions = data.suggestions;
+            const resultsHtml = suggestions.map(suggestion => {
+                return `
+                    <div class="suggestion-item" onclick="handleSuggestionClick('${suggestion.query}', '${suggestion.type}')">
+                        <div class="suggestion-title">${suggestion.query}</div>
+                        <div class="suggestion-type">${suggestion.type}</div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = resultsHtml || showEmpty('search-results', 'No search suggestions found.');
+        }
+
+        function handleSuggestionClick(query, type) {
+            if (type === 'ARTIST') {
+                document.getElementById('artist-input').value = query;
+                showTab('artists');
+                document.querySelector('[onclick="showTab(\'artists\')"]').classList.add('active');
+                searchArtists();
+            } else {
+                // For songs and other types, we could implement additional search functionality
+                alert(`Selected: ${query} (${type})`);
+            }
+        }
+
+        function handleArtistKeyPress(event) {
+            if (event.key === 'Enter') {
+                searchArtists();
+            }
+        }
+
+        async function searchArtists() {
+            const query = document.getElementById('artist-input').value.trim();
+            const button = document.getElementById('artist-search-btn');
+            
+            if (!query) {
+                showError('artists-results', 'Please enter an artist name.');
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = 'Searching...';
+            showLoading('artists-results');
+
+            try {
+                // First, search for the artist to get suggestions
+                const searchUrl = `https://shazam-core.p.rapidapi.com/v1/search/suggest?query=${encodeURIComponent(query)}`;
+                const searchData = await makeApiRequest(searchUrl);
+                
+                // For demo purposes, we'll use a sample artist ID
+                // In a real app, you'd parse the search results to get the artist ID
+                const sampleArtistId = '136975'; // The Beatles ID from your example
+                const detailsUrl = `https://shazam-core.p.rapidapi.com/v2/artists/details?artist_id=${sampleArtistId}`;
+                const artistData = await makeApiRequest(detailsUrl);
+                
+                displayArtistDetails(artistData, query);
+            } catch (error) {
+                showError('artists-results', 'Failed to search for artist. Please try again.');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Search Artist';
+            }
+        }
+
+        function displayArtistDetails(data, searchQuery) {
+            const container = document.getElementById('artists-results');
+            
+            if (!data) {
+                showEmpty('artists-results', `No details found for "${searchQuery}".`);
+                return;
+            }
+
+            // Note: This displays sample data since we're using a fixed artist ID
+            const artistName = data.name || 'Unknown Artist';
+            const artistImage = data.avatar || '';
+            const followersCount = data.stats ? data.stats.followers : 'Unknown';
+            
+            const artistHtml = `
+                <div class="card" style="max-width: 600px; margin: 0 auto;">
+                    ${artistImage ? `<img src="${artistImage}" alt="${artistName}" class="card-image">` : `<div class="card-image"></div>`}
+                    <div class="card-content">
+                        <div class="card-title">${artistName}</div>
+                        <div class="card-info">
+                            <strong>Followers:</strong> ${followersCount}<br>
+                            <em>Note: Showing sample artist data for demonstration. In a real app, this would show results for "${searchQuery}".</em>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-small" onclick="alert('In a real app, this would load more tracks by this artist')">View Tracks</button>
+                            <button class="btn-small btn-secondary" onclick="alert('In a real app, this would show related artists')">Related Artists</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = artistHtml;
+        }
+
+        async function loadCities() {
+            const button = document.getElementById('load-cities-btn');
+            
+            button.disabled = true;
+            button.textContent = 'Loading...';
+            showLoading('cities-results');
+
+            try {
+                const url = 'https://shazam-core.p.rapidapi.com/v1/frame/cities';
+                const data = await makeApiRequest(url);
+                displayCities(data);
+            } catch (error) {
+                showError('cities-results', 'Failed to load cities. Please try again.');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Load Cities';
+            }
+        }
+
+        function displayCities(data) {
+            const container = document.getElementById('cities-results');
+            
+            if (!data || !data.countries) {
+                showEmpty('cities-results', 'No cities data available.');
+                return;
+            }
+
+            let citiesHtml = '';
+            data.countries.forEach(country => {
+                if (country.cities && country.cities.length > 0) {
+                    country.cities.forEach(city => {
+                        citiesHtml += `
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-title">${city.name}</div>
+                                    <div class="card-subtitle">${country.name}</div>
+                                    <div class="card-info">
+                                        City ID: ${city.id}<br>
+                                        Country Code: ${country.id}
+                                    </div>
+                                    <div class="card-actions">
+                                        <button class="btn-small" onclick="alert('In a real app, this would load charts for ${city.name}')">View Charts</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            });
+
+            if (citiesHtml) {
+                container.innerHTML = `<div class="grid">${citiesHtml}</div>`;
+            } else {
+                showEmpty('cities-results', 'No cities found in the data.');
+            }
+        }
+
+        async function getTrackDetails(trackKey) {
+            try {
+                // Extract track ID from the key if needed
+                // For demo purposes, we'll use the sample track from your code
+                const trackId = '216360';
+                const trackName = 'Yesterday';
+                const url = `https://shazam-core.p.rapidapi.com/v1/tracks/youtube-video?track_id=${trackId}&name=${encodeURIComponent(trackName)}`;
+                
+                const data = await makeApiRequest(url);
+                
+                if (data && data.youtubeVideo && data.youtubeVideo.url) {
+                    window.open(data.youtubeVideo.url, '_blank');
+                } else {
+                    alert('No YouTube video found for this track.');
+                }
+            } catch (error) {
+                alert('Failed to get track details.');
+            }
+        }
+
+        // Load initial charts on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCharts();
+        });
     </script>
 </body>
-  </html>
+</html>
