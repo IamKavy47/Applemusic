@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Discovery App</title>
+    <title>Shazam Music Charts</title>
     <style>
         * {
             margin: 0;
@@ -15,734 +15,402 @@
             font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: #333;
+            padding: 20px;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
         }
 
-        .header {
+        h1 {
             text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .header h1 {
             color: white;
-            font-size: 3rem;
-            margin-bottom: 10px;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        .header p {
-            color: #f0f0f0;
-            font-size: 1.2rem;
-        }
-
-        .tabs {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        .tab {
-            padding: 15px 25px;
-            cursor: pointer;
-            background: white;
-            border: none;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            flex: 1;
+        .country-selector {
             text-align: center;
+            margin-bottom: 30px;
         }
 
-        .tab:hover {
-            background: #f0f0f0;
-        }
-
-        .tab.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .content {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-
-        select, input, button {
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        select:focus, input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        button {
-            background: #667eea;
-            color: white;
+        select {
+            padding: 12px 20px;
+            font-size: 16px;
             border: none;
+            border-radius: 25px;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             cursor: pointer;
-            font-weight: 600;
-            min-width: 120px;
-        }
-
-        button:hover {
-            background: #5a6fd8;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
-
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .search-container {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex: 1;
-        }
-
-        .search-container input {
-            flex: 1;
+            outline: none;
         }
 
         .loading {
             text-align: center;
-            padding: 40px;
-            color: #667eea;
+            color: white;
+            font-size: 18px;
+            margin: 50px 0;
         }
 
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .grid {
+        .charts-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
+            margin-top: 30px;
         }
 
-        .card {
+        .song-card {
             background: white;
-            border-radius: 12px;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            border: 1px solid #f0f0f0;
         }
 
-        .card:hover {
+        .song-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.2);
         }
 
-        .card-image {
+        .song-rank {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .song-cover {
             width: 100%;
             height: 200px;
             object-fit: cover;
-            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
-        }
-
-        .card-content {
-            padding: 20px;
-        }
-
-        .card-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: #333;
-            line-height: 1.3;
-        }
-
-        .card-subtitle {
-            color: #667eea;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .card-info {
-            color: #666;
-            line-height: 1.5;
+            border-radius: 10px;
             margin-bottom: 15px;
         }
 
-        .card-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+        .song-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+            line-height: 1.3;
         }
 
-        .btn-small {
-            padding: 8px 16px;
-            font-size: 0.9rem;
-            border-radius: 6px;
-            text-decoration: none;
-            background: #667eea;
+        .song-artist {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .play-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
             cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
             transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .btn-small:hover {
-            background: #5a6fd8;
-            transform: translateY(-1px);
+        .play-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
-        .btn-secondary {
-            background: #6c757d;
+        .play-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
         }
 
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border: 1px solid #f5c6cb;
-        }
-
-        .empty {
+        .error-message {
             text-align: center;
-            padding: 60px 20px;
-            color: #666;
+            color: #ff6b6b;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .empty h3 {
-            margin-bottom: 10px;
-            color: #333;
+        .audio-player {
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        audio {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .country-flag {
+            width: 24px;
+            height: 18px;
+            margin-right: 8px;
+            border-radius: 2px;
         }
 
         @media (max-width: 768px) {
-            .tabs {
-                flex-direction: column;
-            }
-
-            .controls {
-                flex-direction: column;
-            }
-
-            .search-container {
-                flex-direction: column;
-            }
-
-            .grid {
+            .charts-grid {
                 grid-template-columns: 1fr;
             }
-
-            .header h1 {
+            
+            h1 {
                 font-size: 2rem;
             }
-        }
-
-        .suggestion-item {
-            padding: 15px;
-            border-bottom: 1px solid #f0f0f0;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .suggestion-item:hover {
-            background: #f8f9fa;
-        }
-
-        .suggestion-item:last-child {
-            border-bottom: none;
-        }
-
-        .suggestion-title {
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .suggestion-type {
-            color: #667eea;
-            font-size: 0.9rem;
-            text-transform: capitalize;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🎵 Music Discovery</h1>
-            <p>Discover trending music, search for your favorites, and explore artists</p>
+        <h1>🎵 Shazam Music Charts</h1>
+        
+        <div class="country-selector">
+            <select id="countrySelect">
+                <option value="US">🇺🇸 United States</option>
+                <option value="IN">🇮🇳 India</option>
+                <option value="DZ">🇩🇿 Algeria</option>
+                <option value="GB">🇬🇧 United Kingdom</option>
+                <option value="CA">🇨🇦 Canada</option>
+                <option value="AU">🇦🇺 Australia</option>
+                <option value="FR">🇫🇷 France</option>
+                <option value="DE">🇩🇪 Germany</option>
+                <option value="BR">🇧🇷 Brazil</option>
+                <option value="JP">🇯🇵 Japan</option>
+                <option value="KR">🇰🇷 South Korea</option>
+                <option value="MX">🇲🇽 Mexico</option>
+            </select>
         </div>
 
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('charts')">Charts</button>
-            <button class="tab" onclick="showTab('search')">Search</button>
-            <button class="tab" onclick="showTab('artists')">Artists</button>
-            <button class="tab" onclick="showTab('cities')">Cities</button>
+        <div id="loading" class="loading" style="display: none;">
+            Loading charts... 🎶
         </div>
 
-        <div id="charts" class="tab-content active">
-            <div class="content">
-                <h2>Music Charts</h2>
-                <div class="controls">
-                    <select id="country-select">
-                        <option value="US">United States</option>
-                        <option value="IN" selected>India</option>
-                        <option value="GB">United Kingdom</option>
-                        <option value="CA">Canada</option>
-                        <option value="AU">Australia</option>
-                        <option value="DE">Germany</option>
-                        <option value="FR">France</option>
-                        <option value="JP">Japan</option>
-                        <option value="BR">Brazil</option>
-                        <option value="MX">Mexico</option>
-                    </select>
-                    <select id="genre-select">
-                        <option value="">All Genres</option>
-                        <option value="POP" selected>Pop</option>
-                        <option value="ROCK">Rock</option>
-                        <option value="HIP_HOP_RAP">Hip Hop/Rap</option>
-                        <option value="DANCE">Dance</option>
-                        <option value="R_AND_B_SOUL">R&B/Soul</option>
-                        <option value="ALTERNATIVE">Alternative</option>
-                        <option value="ELECTRONIC">Electronic</option>
-                        <option value="COUNTRY">Country</option>
-                        <option value="REGGAE_DANCE_HALL">Reggae</option>
-                        <option value="JAZZ">Jazz</option>
-                    </select>
-                    <button onclick="loadCharts()" id="load-charts-btn">Load Charts</button>
-                </div>
-                <div id="charts-results"></div>
-            </div>
-        </div>
+        <div id="error" class="error-message" style="display: none;"></div>
 
-        <div id="search" class="tab-content">
-            <div class="content">
-                <h2>Search Music</h2>
-                <div class="controls">
-                    <div class="search-container">
-                        <input type="text" id="search-input" placeholder="Search for songs, artists, albums..." onkeypress="handleSearchKeyPress(event)">
-                        <button onclick="searchMusic()" id="search-btn">Search</button>
-                    </div>
-                </div>
-                <div id="search-results"></div>
-            </div>
-        </div>
-
-        <div id="artists" class="tab-content">
-            <div class="content">
-                <h2>Artist Details</h2>
-                <div class="controls">
-                    <div class="search-container">
-                        <input type="text" id="artist-input" placeholder="Enter artist name..." onkeypress="handleArtistKeyPress(event)">
-                        <button onclick="searchArtists()" id="artist-search-btn">Search Artist</button>
-                    </div>
-                </div>
-                <div id="artists-results"></div>
-            </div>
-        </div>
-
-        <div id="cities" class="tab-content">
-            <div class="content">
-                <h2>Music by Cities</h2>
-                <button onclick="loadCities()" id="load-cities-btn">Load Cities</button>
-                <div id="cities-results"></div>
-            </div>
-        </div>
+        <div id="chartsContainer" class="charts-grid"></div>
     </div>
 
     <script>
         const API_KEY = '73ec588339msh0aad14b831a7fb2p1fb80cjsnf7918996415b';
         const API_HOST = 'shazam-core.p.rapidapi.com';
+        let currentAudio = null;
 
-        function showTab(tabId) {
-            // Remove active class from all tabs and content
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            // Add active class to clicked tab and corresponding content
-            event.target.classList.add('active');
-            document.getElementById(tabId).classList.add('active');
+        const countrySelect = document.getElementById('countrySelect');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const chartsContainer = document.getElementById('chartsContainer');
+
+        // Initialize the application
+        async function initializeApp() {
+            try {
+                await loadCharts('US');
+            } catch (error) {
+                console.error('Error initializing app:', error);
+                showError('Failed to initialize the application');
+            }
         }
 
-        function showLoading(containerId) {
-            document.getElementById(containerId).innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading...</p>
-                </div>
-            `;
-        }
+        // Load initial charts when page loads
+        initializeApp();
 
-        function showError(containerId, message) {
-            document.getElementById(containerId).innerHTML = `
-                <div class="error">
-                    <strong>Error:</strong> ${message}
-                </div>
-            `;
-        }
+        countrySelect.addEventListener('change', async (e) => {
+            try {
+                await loadCharts(e.target.value);
+            } catch (error) {
+                console.error('Error loading charts for selected country:', error);
+            }
+        });
 
-        function showEmpty(containerId, message) {
-            document.getElementById(containerId).innerHTML = `
-                <div class="empty">
-                    <h3>No Results Found</h3>
-                    <p>${message}</p>
-                </div>
-            `;
-        }
-
-        async function makeApiRequest(url) {
+        // API function to fetch charts data
+        async function fetchChartsData(countryCode) {
+            const url = `https://shazam-core.p.rapidapi.com/v1/charts/country?country_code=${countryCode}`;
             const options = {
                 method: 'GET',
                 headers: {
-                    'x-rapidapi-key': API_KEY,
-                    'x-rapidapi-host': API_HOST
+                    'x-rapidapi-key': '73ec588339msh0aad14b831a7fb2p1fb80cjsnf7918996415b',
+                    'x-rapidapi-host': 'shazam-core.p.rapidapi.com'
                 }
             };
 
             try {
                 const response = await fetch(url, options);
+                
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                
                 const result = await response.json();
                 return result;
             } catch (error) {
-                console.error('API request failed:', error);
+                console.error('API Error:', error);
                 throw error;
             }
         }
 
-        async function loadCharts() {
-            const country = document.getElementById('country-select').value;
-            const genre = document.getElementById('genre-select').value;
-            const button = document.getElementById('load-charts-btn');
-            
-            button.disabled = true;
-            button.textContent = 'Loading...';
-            showLoading('charts-results');
+        // Main function to load and display charts
+        async function loadCharts(countryCode) {
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            chartsContainer.innerHTML = '';
 
             try {
-                let url;
-                if (genre) {
-                    url = `https://shazam-core.p.rapidapi.com/v1/charts/genre-country?country_code=${country}&genre_code=${genre}`;
+                const chartsData = await fetchChartsData(countryCode);
+                
+                loading.style.display = 'none';
+
+                if (chartsData && chartsData.length > 0) {
+                    displayCharts(chartsData);
                 } else {
-                    url = `https://shazam-core.p.rapidapi.com/v1/charts/country?country_code=${country}`;
+                    showError('No charts available for this country');
                 }
-
-                const data = await makeApiRequest(url);
-                displayCharts(data);
-            } catch (error) {
-                showError('charts-results', 'Failed to load charts. Please try again.');
-            } finally {
-                button.disabled = false;
-                button.textContent = 'Load Charts';
+            } catch (err) {
+                loading.style.display = 'none';
+                showError('Failed to load charts. Please check your internet connection and try again.');
+                console.error('Error loading charts:', err);
             }
         }
 
-        function displayCharts(data) {
-            const container = document.getElementById('charts-results');
+        function displayCharts(songs) {
+            chartsContainer.innerHTML = '';
             
-            if (!data || !data.length) {
-                showEmpty('charts-results', 'No chart data available for the selected country and genre.');
-                return;
-            }
-
-            const gridHtml = data.map((track, index) => {
-                const title = track.title || 'Unknown Title';
-                const artist = track.subtitle || 'Unknown Artist';
-                const coverArt = track.images && track.images.coverart ? track.images.coverart : '';
-                const hub = track.hub || {};
-                
-                return `
-                    <div class="card">
-                        ${coverArt ? `<img src="${coverArt}" alt="${title}" class="card-image">` : `<div class="card-image"></div>`}
-                        <div class="card-content">
-                            <div class="card-title">#${index + 1} ${title}</div>
-                            <div class="card-subtitle">${artist}</div>
-                            <div class="card-info">
-                                ${track.sections && track.sections[0] && track.sections[0].text ? track.sections[0].text.join(' • ') : ''}
-                            </div>
-                            <div class="card-actions">
-                                ${hub.actions && hub.actions.length > 0 ? 
-                                    hub.actions.map(action => `
-                                        <a href="${action.uri}" target="_blank" class="btn-small">${action.name || 'Listen'}</a>
-                                    `).join('') : ''
-                                }
-                                ${track.key ? `<button class="btn-small btn-secondary" onclick="getTrackDetails('${track.key}')">Details</button>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            container.innerHTML = `<div class="grid">${gridHtml}</div>`;
+            songs.slice(0, 20).forEach((song, index) => {
+                const songCard = createSongCard(song, index + 1);
+                chartsContainer.appendChild(songCard);
+            });
         }
 
-        function handleSearchKeyPress(event) {
-            if (event.key === 'Enter') {
-                searchMusic();
-            }
-        }
+        function createSongCard(song, rank) {
+            const card = document.createElement('div');
+            card.className = 'song-card';
 
-        async function searchMusic() {
-            const query = document.getElementById('search-input').value.trim();
-            const button = document.getElementById('search-btn');
-            
-            if (!query) {
-                showError('search-results', 'Please enter a search term.');
-                return;
-            }
+            const title = song.title || 'Unknown Title';
+            const artist = song.subtitle || 'Unknown Artist';
+            const coverArt = song.images?.coverart || song.images?.background || '/api/placeholder/300/200';
+            const previewUrl = song.hub?.actions?.find(action => action.name === 'apple')?.uri || 
+                             song.hub?.preview?.find(p => p.actions)?.actions[0]?.uri || null;
 
-            button.disabled = true;
-            button.textContent = 'Searching...';
-            showLoading('search-results');
-
-            try {
-                const url = `https://shazam-core.p.rapidapi.com/v1/search/suggest?query=${encodeURIComponent(query)}`;
-                const data = await makeApiRequest(url);
-                displaySearchResults(data);
-            } catch (error) {
-                showError('search-results', 'Failed to search. Please try again.');
-            } finally {
-                button.disabled = false;
-                button.textContent = 'Search';
-            }
-        }
-
-        function displaySearchResults(data) {
-            const container = document.getElementById('search-results');
-            
-            if (!data || !data.suggestions) {
-                showEmpty('search-results', 'No search suggestions found.');
-                return;
-            }
-
-            const suggestions = data.suggestions;
-            const resultsHtml = suggestions.map(suggestion => {
-                return `
-                    <div class="suggestion-item" onclick="handleSuggestionClick('${suggestion.query}', '${suggestion.type}')">
-                        <div class="suggestion-title">${suggestion.query}</div>
-                        <div class="suggestion-type">${suggestion.type}</div>
-                    </div>
-                `;
-            }).join('');
-
-            container.innerHTML = resultsHtml || showEmpty('search-results', 'No search suggestions found.');
-        }
-
-        function handleSuggestionClick(query, type) {
-            if (type === 'ARTIST') {
-                document.getElementById('artist-input').value = query;
-                showTab('artists');
-                document.querySelector('[onclick="showTab(\'artists\')"]').classList.add('active');
-                searchArtists();
-            } else {
-                // For songs and other types, we could implement additional search functionality
-                alert(`Selected: ${query} (${type})`);
-            }
-        }
-
-        function handleArtistKeyPress(event) {
-            if (event.key === 'Enter') {
-                searchArtists();
-            }
-        }
-
-        async function searchArtists() {
-            const query = document.getElementById('artist-input').value.trim();
-            const button = document.getElementById('artist-search-btn');
-            
-            if (!query) {
-                showError('artists-results', 'Please enter an artist name.');
-                return;
-            }
-
-            button.disabled = true;
-            button.textContent = 'Searching...';
-            showLoading('artists-results');
-
-            try {
-                // First, search for the artist to get suggestions
-                const searchUrl = `https://shazam-core.p.rapidapi.com/v1/search/suggest?query=${encodeURIComponent(query)}`;
-                const searchData = await makeApiRequest(searchUrl);
-                
-                // For demo purposes, we'll use a sample artist ID
-                // In a real app, you'd parse the search results to get the artist ID
-                const sampleArtistId = '136975'; // The Beatles ID from your example
-                const detailsUrl = `https://shazam-core.p.rapidapi.com/v2/artists/details?artist_id=${sampleArtistId}`;
-                const artistData = await makeApiRequest(detailsUrl);
-                
-                displayArtistDetails(artistData, query);
-            } catch (error) {
-                showError('artists-results', 'Failed to search for artist. Please try again.');
-            } finally {
-                button.disabled = false;
-                button.textContent = 'Search Artist';
-            }
-        }
-
-        function displayArtistDetails(data, searchQuery) {
-            const container = document.getElementById('artists-results');
-            
-            if (!data) {
-                showEmpty('artists-results', `No details found for "${searchQuery}".`);
-                return;
-            }
-
-            // Note: This displays sample data since we're using a fixed artist ID
-            const artistName = data.name || 'Unknown Artist';
-            const artistImage = data.avatar || '';
-            const followersCount = data.stats ? data.stats.followers : 'Unknown';
-            
-            const artistHtml = `
-                <div class="card" style="max-width: 600px; margin: 0 auto;">
-                    ${artistImage ? `<img src="${artistImage}" alt="${artistName}" class="card-image">` : `<div class="card-image"></div>`}
-                    <div class="card-content">
-                        <div class="card-title">${artistName}</div>
-                        <div class="card-info">
-                            <strong>Followers:</strong> ${followersCount}<br>
-                            <em>Note: Showing sample artist data for demonstration. In a real app, this would show results for "${searchQuery}".</em>
-                        </div>
-                        <div class="card-actions">
-                            <button class="btn-small" onclick="alert('In a real app, this would load more tracks by this artist')">View Tracks</button>
-                            <button class="btn-small btn-secondary" onclick="alert('In a real app, this would show related artists')">Related Artists</button>
-                        </div>
-                    </div>
-                </div>
+            card.innerHTML = `
+                <div class="song-rank">${rank}</div>
+                <img src="${coverArt}" alt="${title}" class="song-cover" onerror="this.src='/api/placeholder/300/200'">
+                <div class="song-title">${title}</div>
+                <div class="song-artist">${artist}</div>
+                <button class="play-button" onclick="playPreview('${previewUrl}', this)" ${!previewUrl ? 'disabled' : ''}>
+                    ${previewUrl ? '▶️ Play Preview' : '❌ No Preview Available'}
+                </button>
+                <div class="audio-player" id="audio-${rank}" style="display: none;"></div>
             `;
 
-            container.innerHTML = artistHtml;
+            return card;
         }
 
-        async function loadCities() {
-            const button = document.getElementById('load-cities-btn');
-            
-            button.disabled = true;
-            button.textContent = 'Loading...';
-            showLoading('cities-results');
+        // Async function to handle audio playback
+        async function playPreview(previewUrl, button) {
+            if (!previewUrl) return;
 
             try {
-                const url = 'https://shazam-core.p.rapidapi.com/v1/frame/cities';
-                const data = await makeApiRequest(url);
-                displayCities(data);
-            } catch (error) {
-                showError('cities-results', 'Failed to load cities. Please try again.');
-            } finally {
-                button.disabled = false;
-                button.textContent = 'Load Cities';
-            }
-        }
-
-        function displayCities(data) {
-            const container = document.getElementById('cities-results');
-            
-            if (!data || !data.countries) {
-                showEmpty('cities-results', 'No cities data available.');
-                return;
-            }
-
-            let citiesHtml = '';
-            data.countries.forEach(country => {
-                if (country.cities && country.cities.length > 0) {
-                    country.cities.forEach(city => {
-                        citiesHtml += `
-                            <div class="card">
-                                <div class="card-content">
-                                    <div class="card-title">${city.name}</div>
-                                    <div class="card-subtitle">${country.name}</div>
-                                    <div class="card-info">
-                                        City ID: ${city.id}<br>
-                                        Country Code: ${country.id}
-                                    </div>
-                                    <div class="card-actions">
-                                        <button class="btn-small" onclick="alert('In a real app, this would load charts for ${city.name}')">View Charts</button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                // Stop any currently playing audio
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio = null;
+                    // Reset all play buttons
+                    document.querySelectorAll('.play-button').forEach(btn => {
+                        if (btn.textContent.includes('Stop')) {
+                            btn.innerHTML = '▶️ Play Preview';
+                        }
+                    });
+                    // Hide all audio players
+                    document.querySelectorAll('.audio-player').forEach(player => {
+                        player.style.display = 'none';
+                        player.innerHTML = '';
                     });
                 }
-            });
 
-            if (citiesHtml) {
-                container.innerHTML = `<div class="grid">${citiesHtml}</div>`;
-            } else {
-                showEmpty('cities-results', 'No cities found in the data.');
-            }
-        }
-
-        async function getTrackDetails(trackKey) {
-            try {
-                // Extract track ID from the key if needed
-                // For demo purposes, we'll use the sample track from your code
-                const trackId = '216360';
-                const trackName = 'Yesterday';
-                const url = `https://shazam-core.p.rapidapi.com/v1/tracks/youtube-video?track_id=${trackId}&name=${encodeURIComponent(trackName)}`;
-                
-                const data = await makeApiRequest(url);
-                
-                if (data && data.youtubeVideo && data.youtubeVideo.url) {
-                    window.open(data.youtubeVideo.url, '_blank');
-                } else {
-                    alert('No YouTube video found for this track.');
+                // If clicking the same button that was playing, just stop
+                if (button.textContent.includes('Stop')) {
+                    button.innerHTML = '▶️ Play Preview';
+                    return;
                 }
+
+                // Create and play new audio
+                const audio = document.createElement('audio');
+                audio.controls = true;
+                audio.src = previewUrl;
+                
+                // Find the audio player container for this song
+                const audioContainer = button.nextElementSibling;
+                audioContainer.appendChild(audio);
+                audioContainer.style.display = 'block';
+                
+                currentAudio = audio;
+                button.innerHTML = '⏹️ Stop Preview';
+                
+                // Use async/await for audio playback
+                try {
+                    await audio.play();
+                } catch (playError) {
+                    console.error('Error playing audio:', playError);
+                    showError('Could not play preview - audio format may not be supported');
+                    button.innerHTML = '❌ Preview Error';
+                    button.disabled = true;
+                    audioContainer.style.display = 'none';
+                    audioContainer.innerHTML = '';
+                    currentAudio = null;
+                    return;
+                }
+
+                audio.addEventListener('ended', () => {
+                    button.innerHTML = '▶️ Play Preview';
+                    audioContainer.style.display = 'none';
+                    audioContainer.innerHTML = '';
+                    currentAudio = null;
+                });
+
+                audio.addEventListener('error', () => {
+                    button.innerHTML = '❌ Preview Error';
+                    button.disabled = true;
+                    audioContainer.style.display = 'none';
+                    audioContainer.innerHTML = '';
+                    currentAudio = null;
+                });
+
             } catch (error) {
-                alert('Failed to get track details.');
+                console.error('Error in playPreview function:', error);
+                showError('An error occurred while trying to play the preview');
             }
         }
 
-        // Load initial charts on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadCharts();
+        function showError(message) {
+            error.textContent = message;
+            error.style.display = 'block';
+        }
+
+        // Prevent memory leaks by stopping audio when page unloads
+        window.addEventListener('beforeunload', () => {
+            if (currentAudio) {
+                currentAudio.pause();
+            }
         });
     </script>
 </body>
 </html>
+
