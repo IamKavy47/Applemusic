@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shazam Music Charts</title>
+    <title>Global Music Charts</title>
     <style>
         * {
             margin: 0;
@@ -15,387 +15,482 @@
             font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            color: #333;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
         }
 
-        h1 {
+        .header {
             text-align: center;
-            color: white;
             margin-bottom: 30px;
-            font-size: 2.5rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        .country-selector {
-            text-align: center;
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .country-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .country-selector label {
+            font-weight: bold;
+            color: #555;
         }
 
         select {
-            padding: 12px 20px;
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
             font-size: 16px;
-            border: none;
-            border-radius: 25px;
             background: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
             outline: none;
+            border-color: #667eea;
+        }
+
+        .load-btn {
+            padding: 10px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .load-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .load-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .loading {
             text-align: center;
+            padding: 40px;
             color: white;
-            font-size: 18px;
-            margin: 50px 0;
+            font-size: 1.2em;
         }
 
-        .charts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .song-card {
+        .charts-container {
             background: white;
             border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            position: relative;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             overflow: hidden;
         }
 
-        .song-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+        .charts-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
         }
 
-        .song-rank {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: #667eea;
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
+        .charts-header h2 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .track-list {
+            padding: 20px;
+        }
+
+        .track-item {
             display: flex;
             align-items: center;
-            justify-content: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .track-item:hover {
+            background-color: #f8f9ff;
+        }
+
+        .track-item:last-child {
+            border-bottom: none;
+        }
+
+        .track-rank {
+            font-size: 1.5em;
             font-weight: bold;
-            font-size: 14px;
+            color: #667eea;
+            margin-right: 20px;
+            min-width: 40px;
         }
 
-        .song-cover {
-            width: 100%;
-            height: 200px;
+        .track-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            margin-right: 15px;
             object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .song-title {
-            font-size: 18px;
+        .track-info {
+            flex: 1;
+        }
+
+        .track-title {
+            font-size: 1.1em;
             font-weight: bold;
             color: #333;
             margin-bottom: 5px;
-            line-height: 1.3;
         }
 
-        .song-artist {
+        .track-artist {
             color: #666;
-            font-size: 14px;
-            margin-bottom: 15px;
+            font-size: 0.9em;
         }
 
         .play-button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
+            padding: 8px 15px;
+            border-radius: 20px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            font-size: 0.9em;
+            transition: transform 0.2s;
         }
 
         .play-button:hover {
             transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .play-button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
         }
 
         .error-message {
-            text-align: center;
-            color: #ff6b6b;
-            background: white;
+            background: #fee;
+            color: #c33;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 8px;
+            text-align: center;
             margin: 20px 0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .audio-player {
-            margin-top: 10px;
-            width: 100%;
-        }
-
-        audio {
-            width: 100%;
-            border-radius: 10px;
-        }
-
-        .country-flag {
-            width: 24px;
-            height: 18px;
-            margin-right: 8px;
-            border-radius: 2px;
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
         }
 
         @media (max-width: 768px) {
-            .charts-grid {
-                grid-template-columns: 1fr;
+            .controls {
+                flex-direction: column;
             }
-            
-            h1 {
-                font-size: 2rem;
+
+            .track-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+
+            .track-rank {
+                margin-right: 0;
+            }
+
+            .track-image {
+                margin-right: 0;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎵 Shazam Music Charts</h1>
-        
-        <div class="country-selector">
-            <select id="countrySelect">
-                <option value="US">🇺🇸 United States</option>
-                <option value="IN">🇮🇳 India</option>
-                <option value="DZ">🇩🇿 Algeria</option>
-                <option value="GB">🇬🇧 United Kingdom</option>
-                <option value="CA">🇨🇦 Canada</option>
-                <option value="AU">🇦🇺 Australia</option>
-                <option value="FR">🇫🇷 France</option>
-                <option value="DE">🇩🇪 Germany</option>
-                <option value="BR">🇧🇷 Brazil</option>
-                <option value="JP">🇯🇵 Japan</option>
-                <option value="KR">🇰🇷 South Korea</option>
-                <option value="MX">🇲🇽 Mexico</option>
-            </select>
+        <div class="header">
+            <h1>🎵 Global Music Charts</h1>
+            <p>Discover trending music from around the world</p>
+        </div>
+
+        <div class="controls">
+            <div class="country-selector">
+                <label for="countrySelect">Select Country:</label>
+                <select id="countrySelect">
+                    <option value="">Choose a country...</option>
+                    <option value="US">🇺🇸 United States</option>
+                    <option value="IN">🇮🇳 India</option>
+                    <option value="GB">🇬🇧 United Kingdom</option>
+                    <option value="CA">🇨🇦 Canada</option>
+                    <option value="AU">🇦🇺 Australia</option>
+                    <option value="DE">🇩🇪 Germany</option>
+                    <option value="FR">🇫🇷 France</option>
+                    <option value="JP">🇯🇵 Japan</option>
+                    <option value="KR">🇰🇷 South Korea</option>
+                    <option value="BR">🇧🇷 Brazil</option>
+                    <option value="MX">🇲🇽 Mexico</option>
+                    <option value="ES">🇪🇸 Spain</option>
+                    <option value="IT">🇮🇹 Italy</option>
+                    <option value="NL">🇳🇱 Netherlands</option>
+                    <option value="SE">🇸🇪 Sweden</option>
+                    <option value="NO">🇳🇴 Norway</option>
+                    <option value="DK">🇩🇰 Denmark</option>
+                    <option value="FI">🇫🇮 Finland</option>
+                    <option value="PL">🇵🇱 Poland</option>
+                    <option value="RU">🇷🇺 Russia</option>
+                    <option value="CN">🇨🇳 China</option>
+                    <option value="SG">🇸🇬 Singapore</option>
+                    <option value="TH">🇹🇭 Thailand</option>
+                    <option value="MY">🇲🇾 Malaysia</option>
+                    <option value="PH">🇵🇭 Philippines</option>
+                    <option value="ID">🇮🇩 Indonesia</option>
+                    <option value="VN">🇻🇳 Vietnam</option>
+                    <option value="ZA">🇿🇦 South Africa</option>
+                    <option value="NG">🇳🇬 Nigeria</option>
+                    <option value="AR">🇦🇷 Argentina</option>
+                    <option value="CL">🇨🇱 Chile</option>
+                    <option value="CO">🇨🇴 Colombia</option>
+                    <option value="PE">🇵🇪 Peru</option>
+                    <option value="TR">🇹🇷 Turkey</option>
+                    <option value="EG">🇪🇬 Egypt</option>
+                    <option value="AE">🇦🇪 UAE</option>
+                    <option value="SA">🇸🇦 Saudi Arabia</option>
+                    <option value="IL">🇮🇱 Israel</option>
+                    <option value="GR">🇬🇷 Greece</option>
+                    <option value="PT">🇵🇹 Portugal</option>
+                    <option value="IE">🇮🇪 Ireland</option>
+                    <option value="AT">🇦🇹 Austria</option>
+                    <option value="CH">🇨🇭 Switzerland</option>
+                    <option value="BE">🇧🇪 Belgium</option>
+                    <option value="CZ">🇨🇿 Czech Republic</option>
+                    <option value="HU">🇭🇺 Hungary</option>
+                    <option value="RO">🇷🇴 Romania</option>
+                    <option value="BG">🇧🇬 Bulgaria</option>
+                    <option value="HR">🇭🇷 Croatia</option>
+                    <option value="RS">🇷🇸 Serbia</option>
+                    <option value="UA">🇺🇦 Ukraine</option>
+                    <option value="LT">🇱🇹 Lithuania</option>
+                    <option value="LV">🇱🇻 Latvia</option>
+                    <option value="EE">🇪🇪 Estonia</option>
+                </select>
+            </div>
+            <button id="loadChartsBtn" class="load-btn">Load Charts</button>
         </div>
 
         <div id="loading" class="loading" style="display: none;">
-            Loading charts... 🎶
+            <p>🎶 Loading charts...</p>
         </div>
 
         <div id="error" class="error-message" style="display: none;"></div>
 
-        <div id="chartsContainer" class="charts-grid"></div>
+        <div id="chartsContainer" class="charts-container" style="display: none;">
+            <div class="charts-header">
+                <h2 id="chartTitle">Music Charts</h2>
+                <p id="chartSubtitle">Top trending tracks</p>
+            </div>
+            <div id="trackList" class="track-list"></div>
+        </div>
     </div>
 
     <script>
+        // API Configuration - Using the provided credentials directly
         const API_KEY = '73ec588339msh0aad14b831a7fb2p1fb80cjsnf7918996415b';
         const API_HOST = 'shazam-core.p.rapidapi.com';
-        let currentAudio = null;
 
         const countrySelect = document.getElementById('countrySelect');
+        const loadChartsBtn = document.getElementById('loadChartsBtn');
         const loading = document.getElementById('loading');
         const error = document.getElementById('error');
         const chartsContainer = document.getElementById('chartsContainer');
+        const chartTitle = document.getElementById('chartTitle');
+        const chartSubtitle = document.getElementById('chartSubtitle');
+        const trackList = document.getElementById('trackList');
 
-        // Initialize the application
-        async function initializeApp() {
-            try {
-                await loadCharts('US');
-            } catch (error) {
-                console.error('Error initializing app:', error);
-                showError('Failed to initialize the application');
-            }
-        }
+        const countryNames = {
+            'US': 'United States',
+            'IN': 'India',
+            'GB': 'United Kingdom',
+            'CA': 'Canada',
+            'AU': 'Australia',
+            'DE': 'Germany',
+            'FR': 'France',
+            'JP': 'Japan',
+            'KR': 'South Korea',
+            'BR': 'Brazil',
+            'MX': 'Mexico',
+            'ES': 'Spain',
+            'IT': 'Italy',
+            'NL': 'Netherlands',
+            'SE': 'Sweden',
+            'NO': 'Norway',
+            'DK': 'Denmark',
+            'FI': 'Finland',
+            'PL': 'Poland',
+            'RU': 'Russia',
+            'CN': 'China',
+            'SG': 'Singapore',
+            'TH': 'Thailand',
+            'MY': 'Malaysia',
+            'PH': 'Philippines',
+            'ID': 'Indonesia',
+            'VN': 'Vietnam',
+            'ZA': 'South Africa',
+            'NG': 'Nigeria',
+            'AR': 'Argentina',
+            'CL': 'Chile',
+            'CO': 'Colombia',
+            'PE': 'Peru',
+            'TR': 'Turkey',
+            'EG': 'Egypt',
+            'AE': 'UAE',
+            'SA': 'Saudi Arabia',
+            'IL': 'Israel',
+            'GR': 'Greece',
+            'PT': 'Portugal',
+            'IE': 'Ireland',
+            'AT': 'Austria',
+            'CH': 'Switzerland',
+            'BE': 'Belgium',
+            'CZ': 'Czech Republic',
+            'HU': 'Hungary',
+            'RO': 'Romania',
+            'BG': 'Bulgaria',
+            'HR': 'Croatia',
+            'RS': 'Serbia',
+            'UA': 'Ukraine',
+            'LT': 'Lithuania',
+            'LV': 'Latvia',
+            'EE': 'Estonia'
+        };
 
-        // Load initial charts when page loads
-        initializeApp();
+        loadChartsBtn.addEventListener('click', loadCharts);
 
-        countrySelect.addEventListener('change', async (e) => {
-            try {
-                await loadCharts(e.target.value);
-            } catch (error) {
-                console.error('Error loading charts for selected country:', error);
+        countrySelect.addEventListener('change', function() {
+            if (this.value) {
+                loadChartsBtn.disabled = false;
+            } else {
+                loadChartsBtn.disabled = true;
             }
         });
 
-        // API function to fetch charts data
-        async function fetchChartsData(countryCode) {
-            const url = `https://shazam-core.p.rapidapi.com/v1/charts/country?country_code=${countryCode}`;
-            const options = {
-                method: 'GET',
-                headers: {
-                    'x-rapidapi-key': '73ec588339msh0aad14b831a7fb2p1fb80cjsnf7918996415b',
-                    'x-rapidapi-host': 'shazam-core.p.rapidapi.com'
-                }
-            };
+        // Initial state
+        loadChartsBtn.disabled = true;
+
+        async function loadCharts() {
+            const selectedCountry = countrySelect.value;
+            if (!selectedCountry) return;
+
+            // Show loading state
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            chartsContainer.style.display = 'none';
+            loadChartsBtn.disabled = true;
 
             try {
+                const url = `https://shazam-core.p.rapidapi.com/v1/charts/country?country_code=${selectedCountry}`;
+                const options = {
+                    method: 'GET',
+                    headers: {
+                        'x-rapidapi-key': API_KEY,
+                        'x-rapidapi-host': API_HOST
+                    }
+                };
+
                 const response = await fetch(url, options);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                
+
                 const result = await response.json();
-                return result;
-            } catch (error) {
-                console.error('API Error:', error);
-                throw error;
-            }
-        }
+                displayCharts(result, selectedCountry);
 
-        // Main function to load and display charts
-        async function loadCharts(countryCode) {
-            loading.style.display = 'block';
-            error.style.display = 'none';
-            chartsContainer.innerHTML = '';
-
-            try {
-                const chartsData = await fetchChartsData(countryCode);
-                
-                loading.style.display = 'none';
-
-                if (chartsData && chartsData.length > 0) {
-                    displayCharts(chartsData);
-                } else {
-                    showError('No charts available for this country');
-                }
             } catch (err) {
-                loading.style.display = 'none';
+                console.error('Error fetching charts:', err);
                 showError('Failed to load charts. Please check your internet connection and try again.');
-                console.error('Error loading charts:', err);
+            } finally {
+                loading.style.display = 'none';
+                loadChartsBtn.disabled = false;
             }
         }
 
-        function displayCharts(songs) {
-            chartsContainer.innerHTML = '';
-            
-            songs.slice(0, 20).forEach((song, index) => {
-                const songCard = createSongCard(song, index + 1);
-                chartsContainer.appendChild(songCard);
+        function displayCharts(data, countryCode) {
+            const countryName = countryNames[countryCode] || countryCode;
+            chartTitle.textContent = `🎵 ${countryName} Music Charts`;
+            chartSubtitle.textContent = 'Top trending tracks right now';
+
+            trackList.innerHTML = '';
+
+            if (!data || !data.tracks || data.tracks.length === 0) {
+                trackList.innerHTML = '<div class="no-data">No chart data available for this country.</div>';
+                chartsContainer.style.display = 'block';
+                return;
+            }
+
+            data.tracks.forEach((track, index) => {
+                const trackElement = createTrackElement(track, index + 1);
+                trackList.appendChild(trackElement);
             });
+
+            chartsContainer.style.display = 'block';
         }
 
-        function createSongCard(song, rank) {
-            const card = document.createElement('div');
-            card.className = 'song-card';
+        function createTrackElement(track, rank) {
+            const trackDiv = document.createElement('div');
+            trackDiv.className = 'track-item';
 
-            const title = song.title || 'Unknown Title';
-            const artist = song.subtitle || 'Unknown Artist';
-            const coverArt = song.images?.coverart || song.images?.background || '/api/placeholder/300/200';
-            const previewUrl = song.hub?.actions?.find(action => action.name === 'apple')?.uri || 
-                             song.hub?.preview?.find(p => p.actions)?.actions[0]?.uri || null;
+            const title = track.title || 'Unknown Title';
+            const artist = track.subtitle || 'Unknown Artist';
+            const coverImage = track.images?.coverart || track.images?.background || '/api/placeholder/60/60';
+            const previewUrl = track.hub?.actions?.[1]?.uri || track.url || '#';
 
-            card.innerHTML = `
-                <div class="song-rank">${rank}</div>
-                <img src="${coverArt}" alt="${title}" class="song-cover" onerror="this.src='/api/placeholder/300/200'">
-                <div class="song-title">${title}</div>
-                <div class="song-artist">${artist}</div>
-                <button class="play-button" onclick="playPreview('${previewUrl}', this)" ${!previewUrl ? 'disabled' : ''}>
-                    ${previewUrl ? '▶️ Play Preview' : '❌ No Preview Available'}
+            trackDiv.innerHTML = `
+                <div class="track-rank">#${rank}</div>
+                <img src="${coverImage}" alt="${title}" class="track-image" 
+                     onerror="this.src='/api/placeholder/60/60'">
+                <div class="track-info">
+                    <div class="track-title">${title}</div>
+                    <div class="track-artist">${artist}</div>
+                </div>
+                <button class="play-button" onclick="openTrack('${previewUrl}')">
+                    ${previewUrl !== '#' ? '▶️ Play' : '🔗 View'}
                 </button>
-                <div class="audio-player" id="audio-${rank}" style="display: none;"></div>
             `;
 
-            return card;
+            return trackDiv;
         }
 
-        // Async function to handle audio playback
-        async function playPreview(previewUrl, button) {
-            if (!previewUrl) return;
-
-            try {
-                // Stop any currently playing audio
-                if (currentAudio) {
-                    currentAudio.pause();
-                    currentAudio = null;
-                    // Reset all play buttons
-                    document.querySelectorAll('.play-button').forEach(btn => {
-                        if (btn.textContent.includes('Stop')) {
-                            btn.innerHTML = '▶️ Play Preview';
-                        }
-                    });
-                    // Hide all audio players
-                    document.querySelectorAll('.audio-player').forEach(player => {
-                        player.style.display = 'none';
-                        player.innerHTML = '';
-                    });
-                }
-
-                // If clicking the same button that was playing, just stop
-                if (button.textContent.includes('Stop')) {
-                    button.innerHTML = '▶️ Play Preview';
-                    return;
-                }
-
-                // Create and play new audio
-                const audio = document.createElement('audio');
-                audio.controls = true;
-                audio.src = previewUrl;
-                
-                // Find the audio player container for this song
-                const audioContainer = button.nextElementSibling;
-                audioContainer.appendChild(audio);
-                audioContainer.style.display = 'block';
-                
-                currentAudio = audio;
-                button.innerHTML = '⏹️ Stop Preview';
-                
-                // Use async/await for audio playback
-                try {
-                    await audio.play();
-                } catch (playError) {
-                    console.error('Error playing audio:', playError);
-                    showError('Could not play preview - audio format may not be supported');
-                    button.innerHTML = '❌ Preview Error';
-                    button.disabled = true;
-                    audioContainer.style.display = 'none';
-                    audioContainer.innerHTML = '';
-                    currentAudio = null;
-                    return;
-                }
-
-                audio.addEventListener('ended', () => {
-                    button.innerHTML = '▶️ Play Preview';
-                    audioContainer.style.display = 'none';
-                    audioContainer.innerHTML = '';
-                    currentAudio = null;
-                });
-
-                audio.addEventListener('error', () => {
-                    button.innerHTML = '❌ Preview Error';
-                    button.disabled = true;
-                    audioContainer.style.display = 'none';
-                    audioContainer.innerHTML = '';
-                    currentAudio = null;
-                });
-
-            } catch (error) {
-                console.error('Error in playPreview function:', error);
-                showError('An error occurred while trying to play the preview');
+        function openTrack(url) {
+            if (url && url !== '#') {
+                window.open(url, '_blank');
             }
         }
 
@@ -404,13 +499,12 @@
             error.style.display = 'block';
         }
 
-        // Prevent memory leaks by stopping audio when page unloads
-        window.addEventListener('beforeunload', () => {
-            if (currentAudio) {
-                currentAudio.pause();
-            }
+        // Load default charts for India on page load
+        window.addEventListener('load', function() {
+            countrySelect.value = 'IN';
+            loadChartsBtn.disabled = false;
+            loadCharts();
         });
     </script>
 </body>
 </html>
-
